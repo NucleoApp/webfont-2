@@ -108,9 +108,11 @@ var getBuiltInTemplates = function () {
     var templateDirectory = getTemplateDirectory();
     return {
         css: { path: path__default['default'].join(templateDirectory, "template.css.njk") },
+        cssdemo: { path: path__default['default'].join(templateDirectory, "template.cssdemo.njk") },
         html: { path: path__default['default'].join(templateDirectory, "template.html.njk") },
         json: { path: path__default['default'].join(templateDirectory, "template.json.njk") },
         scss: { path: path__default['default'].join(templateDirectory, "template.scss.njk") },
+        less: { path: path__default['default'].join(templateDirectory, "template.less.njk") },
         styl: { path: path__default['default'].join(templateDirectory, "template.styl.njk") }
     };
 };
@@ -449,22 +451,32 @@ var webfont = function (initialOptions) { return __awaiter(void 0, void 0, void 
                 _b.label = 8;
             case 8:
                 if (options.template) {
-                    builtInTemplates = getBuiltInTemplates();
-                    templateFilePath = void 0;
-                    if (Object.keys(builtInTemplates).includes(options.template)) {
-                        result.usedBuildInTemplate = true;
-                        builtInPath = path__default['default'].resolve(__dirname, "../..");
-                        nunjucks__default['default'].configure(builtInPath);
-                        templateFilePath = getTemplateFilePath(options.template);
-                    }
-                    else {
-                        resolvedTemplateFilePath = path__default['default'].resolve(options.template);
-                        nunjucks__default['default'].configure(path__default['default'].dirname(resolvedTemplateFilePath));
-                        templateFilePath = path__default['default'].resolve(resolvedTemplateFilePath);
-                    }
+                    // builtInTemplates = getBuiltInTemplates();
+                    // templateFilePath = void 0;
+                    // if (Object.keys(builtInTemplates).includes(options.template)) {
+                    //     result.usedBuildInTemplate = true;
+                    //     builtInPath = path__default['default'].resolve(__dirname, "../..");
+                    //     nunjucks__default['default'].configure(builtInPath);
+                    //     templateFilePath = getTemplateFilePath(options.template);
+                    // }
+                    // else {
+                    //     resolvedTemplateFilePath = path__default['default'].resolve(options.template);
+                    //     nunjucks__default['default'].configure(path__default['default'].dirname(resolvedTemplateFilePath));
+                    //     templateFilePath = path__default['default'].resolve(resolvedTemplateFilePath);
+                    // }
                     hashOption = {};
                     if (options.addHashInFontUrl) {
                         hashOption = { hash: result.hash };
+                    }
+                    var encodedFont = [];
+                    if (options.encode) {
+                        encodedFont['eot'] = result.eot.toString('base64')
+                        encodedFont['woff'] = result.woff.toString('base64')
+                        encodedFont['ttf'] = result.ttf.toString('base64')
+                    } else {
+                        encodedFont['eot'] = ''
+                        encodedFont['woff'] = ''
+                        encodedFont['ttf'] = ''
                     }
                     nunjucksOptions = deepmerge__default['default'].all([
                         {
@@ -475,7 +487,12 @@ var webfont = function (initialOptions) { return __awaiter(void 0, void 0, void 
                             cacheString: options.templateCacheString || Date.now(),
                             className: options.templateClassName || options.fontName,
                             fontName: options.templateFontName || options.fontName,
-                            fontPath: options.templateFontPath.replace(/\/?$/u, "/")
+                            fontPath: options.templateFontPath.replace(/\/?$/u, "/"),
+                            classBase: options.classBase || '',
+                            encode: options.encode,
+                            base64opentype: encodedFont['eot'],
+                            base64woff: encodedFont['woff'],
+                            base64ttf: encodedFont['ttf'],
                         },
                         hashOption,
                         {
@@ -489,7 +506,19 @@ var webfont = function (initialOptions) { return __awaiter(void 0, void 0, void 
                             ]; })))
                         },
                     ]);
-                    result.template = nunjucks__default['default'].render(templateFilePath, nunjucksOptions);
+                    if(Array.isArray(options.template)){
+                        var templatesArray = options.template.map((item) => {
+                            return getTemplateFilePath(item);
+                        });
+                        templatesArray.forEach( (item, index)=> {
+                            let title = options.template[index];
+                            result[title] = nunjucks__default['default'].render(templatesArray[index], nunjucksOptions);
+                        });
+                    } else {
+                        templateFilePath = getTemplateFilePath(options.template);
+                        result.template = nunjucks__default['default'].render(templateFilePath, nunjucksOptions);
+                    }
+                    
                 }
                 if (!options.formats.includes("svg")) {
                     delete result.svg;

@@ -278,7 +278,9 @@ var getGlyphsData = function (files, options) {
                 if (error) {
                     return reject(error);
                 }
-                metadata.unicode.push(metadata.name.replace(/-/gu, "_"));
+                if(options.ligatures) {
+                    metadata.unicode.push(metadata.name.replace(/-/gu, "_"));
+                }
                 glyphData.metadata = metadata;
                 return resolve(glyphData);
             });
